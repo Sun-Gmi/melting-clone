@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { characters } from "@/lib/characters";
+import { getCharacter, getCharacters } from "@/lib/data";
 import CharacterArt from "@/components/CharacterArt";
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const characters = await getCharacters();
   return characters.map((c) => ({ id: c.id }));
 }
 
@@ -13,7 +14,7 @@ export default async function ChatPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const c = characters.find((ch) => ch.id === id);
+  const c = await getCharacter(id);
   if (!c) notFound();
 
   const messages = [

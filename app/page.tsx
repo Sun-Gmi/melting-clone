@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { characters } from "@/lib/characters";
+import { getCharacters } from "@/lib/data";
 import CharacterArt from "@/components/CharacterArt";
 
 const genreChips = [
@@ -34,7 +34,8 @@ function SectionLabel({ children }: { children: string }) {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const characters = await getCharacters();
   const featured = characters.slice(0, 5);
 
   return (

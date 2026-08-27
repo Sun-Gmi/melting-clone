@@ -1,10 +1,12 @@
-import { characters, tagFilters } from "@/lib/characters";
+import { tagFilters } from "@/lib/characters";
+import { getCharacters } from "@/lib/data";
 import CharacterCard from "@/components/CharacterCard";
 import { AppTopBar, AppBottomNav } from "@/components/AppShell";
 
 export const metadata = { title: "인기 AI 캐릭터 | Melting Clone" };
 
-export default function CharactersPage() {
+export default async function CharactersPage() {
+  const characters = await getCharacters();
   const rising = characters.filter((c) => c.badge === "rising" || c.badge === "new");
   const top = characters.slice(0, 6);
 
