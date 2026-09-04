@@ -1,3 +1,16 @@
+import personaData from "./personas.json";
+
+// LLM에게 "이 캐릭터처럼 말해달라"고 전달할 설정값
+export type Persona = {
+  age: string;
+  occupation: string;
+  personality: string;
+  speech_style: string;
+  background: string;
+  relationship: string;
+  taboos: string;
+};
+
 export type Character = {
   id: string;
   name: string;
@@ -12,9 +25,10 @@ export type Character = {
   art: { from: string; via: string; to: string; glow: string; emoji: string };
   intro: string;
   firstMessage: string;
+  persona?: Persona;
 };
 
-export const characters: Character[] = [
+const baseCharacters: Character[] = [
   {
     id: "kang-dohyun",
     name: "강도현",
@@ -172,6 +186,13 @@ export const characters: Character[] = [
     firstMessage: "…이상하군. 원작의 너는 나한테 말을 걸지 않았는데.",
   },
 ];
+
+
+// 정적 폴백 데이터에도 페르소나를 붙여둔다 (Supabase 미연결 시에도 채팅 가능)
+export const characters: Character[] = baseCharacters.map((c) => ({
+  ...c,
+  persona: (personaData as Record<string, Persona>)[c.id],
+}));
 
 export const tagFilters = [
   "전체", "#로판", "#집착", "#순애", "#인외", "#조직물",

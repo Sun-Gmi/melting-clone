@@ -1,4 +1,8 @@
-import { characters as fallbackCharacters, type Character } from "./characters";
+import {
+  characters as fallbackCharacters,
+  type Character,
+  type Persona,
+} from "./characters";
 import { supabase } from "./supabase";
 
 // DB row -> Character 매핑 (DB는 snake_case)
@@ -15,7 +19,33 @@ type CharacterRow = {
   art: Character["art"];
   intro: string;
   first_message: string;
+  // 페르소나 (LLM 입력용) — 아직 채워지지 않은 행은 null 일 수 있다
+  age: string | null;
+  occupation: string | null;
+  personality: string | null;
+  speech_style: string | null;
+  background: string | null;
+  relationship: string | null;
+  taboos: string | null;
 };
+
+const PERSONA_FIELDS = [
+  "age",
+  "occupation",
+  "personality",
+  "speech_style",
+  "background",
+  "relationship",
+  "taboos",
+] as const;
+
+// 페르소나 컬럼이 전부 채워진 경우에만 Persona 로 취급한다
+function toPersona(row: CharacterRow): Persona | undefined {
+  if (PERSONA_FIELDS.some((f) => !row[f])) return undefined;
+  return Object.fromEntries(
+    PERSONA_FIELDS.map((f) => [f, row[f] as string])
+  ) as unknown as Persona;
+}
 
 function toCharacter(row: CharacterRow): Character {
   return {
@@ -31,6 +61,7 @@ function toCharacter(row: CharacterRow): Character {
     art: row.art,
     intro: row.intro,
     firstMessage: row.first_message,
+    persona: toPersona(row),
   };
 }
 
