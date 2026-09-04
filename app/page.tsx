@@ -2,6 +2,10 @@ import Link from "next/link";
 import { getCharacters } from "@/lib/data";
 import CharacterArt from "@/components/CharacterArt";
 
+// DB 변경분을 최대 60초 안에 사이트에 반영 (ISR)
+export const revalidate = 60;
+
+
 const genreChips = [
   { tag: "#로판", line: "“북부의 겨울은 그대가 오고서야 끝났다.”" },
   { tag: "#집착", line: "“어딜 도망가. 아직 대답 못 들었는데.”" },

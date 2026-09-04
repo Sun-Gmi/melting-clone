@@ -3,6 +3,10 @@ import { getCharacters } from "@/lib/data";
 import CharacterCard from "@/components/CharacterCard";
 import { AppTopBar, AppBottomNav } from "@/components/AppShell";
 
+// DB 변경분을 최대 60초 안에 사이트에 반영 (ISR)
+export const revalidate = 60;
+
+
 export const metadata = { title: "인기 AI 캐릭터 | Melting Clone" };
 
 export default async function CharactersPage() {

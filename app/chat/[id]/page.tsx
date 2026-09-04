@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 import { getCharacter, getCharacters } from "@/lib/data";
 import CharacterArt from "@/components/CharacterArt";
 
+// DB 변경분을 최대 60초 안에 사이트에 반영 (ISR)
+export const revalidate = 60;
+
+
 export async function generateStaticParams() {
   const characters = await getCharacters();
   return characters.map((c) => ({ id: c.id }));
