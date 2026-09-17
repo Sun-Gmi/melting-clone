@@ -70,12 +70,14 @@ app/
 components/
   ChatRoom.tsx             ★ 채팅 UI (클라이언트 컴포넌트). 낙관적 전송, 타이핑 표시, 오류 복구
   ChatList.tsx             대화 목록 UI (클라이언트 컴포넌트). 최근 메시지 미리보기 + 상대 시간
-  CharacterCard.tsx        탐색 화면의 카드
+  CharacterCard.tsx        탐색 화면의 카드 (클라이언트). 누르면 소개 팝업을 연다
+  CharacterProfileModal.tsx 캐릭터 소개 팝업 — 성격/세계관/관계/첫 마디 + "대화하기" 버튼
+  MessageText.tsx          말풍선 본문. *별표* 구간을 지문(기울임·흐린색)으로 표시
   CharacterArt.tsx         썸네일 대체 그라디언트 아트 (실제 이미지 파일 없음)
   AppShell.tsx             앱 상단바 / 하단 네비게이션
 
 lib/
-  characters.ts            Character 타입 + 정적 폴백 데이터 12명
+  characters.ts            Character 타입 + 정적 폴백 데이터 12명 + toProfile() (브라우저에 보내도 되는 필드만 추림)
   personas.json            ★ 캐릭터 설정 원본 (단일 진실 공급원)
   prompt.ts                ★ 페르소나 → LLM 시스템 프롬프트 변환. 대화 품질의 핵심
   llm.ts                   ★ LLM 호출부. 제공자 교체 시 이 파일만 수정

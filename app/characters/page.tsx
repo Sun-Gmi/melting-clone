@@ -1,4 +1,4 @@
-import { tagFilters } from "@/lib/characters";
+import { tagFilters, toProfile } from "@/lib/characters";
 import { getCharacters } from "@/lib/data";
 import CharacterCard from "@/components/CharacterCard";
 import { AppTopBar, AppBottomNav } from "@/components/AppShell";
@@ -10,7 +10,8 @@ export const revalidate = 60;
 export const metadata = { title: "인기 AI 캐릭터 | Melting Clone" };
 
 export default async function CharactersPage() {
-  const characters = await getCharacters();
+  // 카드는 브라우저에서 동작하므로, 연기 대본(말투·금기)은 빼고 보여줘도 되는 정보만 넘긴다
+  const characters = (await getCharacters()).map(toProfile);
   const rising = characters.filter((c) => c.badge === "rising" || c.badge === "new");
   const top = characters.slice(0, 6);
 

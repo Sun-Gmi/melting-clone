@@ -28,6 +28,30 @@ export type Character = {
   persona?: Persona;
 };
 
+/**
+ * 화면에 보여줘도 되는 캐릭터 정보만 추린 형태 (소개 팝업, 카드용).
+ * 말투·금기 같은 연기 지시는 캐릭터의 "대본"이라 사용자에게 보여주지 않는다.
+ */
+export type CharacterProfile = Omit<Character, "persona"> & {
+  profile?: Pick<Persona, "age" | "occupation" | "personality" | "background" | "relationship">;
+};
+
+export function toProfile(c: Character): CharacterProfile {
+  const { persona, ...rest } = c;
+  return {
+    ...rest,
+    profile: persona
+      ? {
+          age: persona.age,
+          occupation: persona.occupation,
+          personality: persona.personality,
+          background: persona.background,
+          relationship: persona.relationship,
+        }
+      : undefined,
+  };
+}
+
 const baseCharacters: Character[] = [
   {
     id: "kang-dohyun",
