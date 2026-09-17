@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Character } from "@/lib/characters";
 import CharacterArt from "./CharacterArt";
+import MessageText from "./MessageText";
 import { getUserKey } from "@/lib/userKey";
 
 type Msg = { id: string; role: "user" | "assistant"; content: string };
@@ -117,13 +118,13 @@ export default function ChatRoom({ character }: { character: Character }) {
                   <CharacterArt c={character} emojiSize="text-sm" />
                 </div>
                 <div className="max-w-[75%] whitespace-pre-wrap rounded-2xl rounded-bl-sm bg-[#2a2b38] px-4 py-2.5 text-sm leading-relaxed">
-                  {m.content}
+                  <MessageText text={m.content} actionClassName="text-[#8f90a0]" />
                 </div>
               </div>
             ) : (
               <div key={m.id} className="flex justify-end">
                 <div className="max-w-[75%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-[#ff33a5] px-4 py-2.5 text-sm leading-relaxed text-white">
-                  {m.content}
+                  <MessageText text={m.content} actionClassName="text-white/75" />
                 </div>
               </div>
             )

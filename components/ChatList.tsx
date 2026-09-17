@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { Character } from "@/lib/characters";
 import { getUserKey } from "@/lib/userKey";
 import CharacterArt from "./CharacterArt";
+import MessageText from "./MessageText";
 
 type Item = {
   conversationId: string;
@@ -108,7 +109,9 @@ export default function ChatList() {
                     {timeAgo(lastMessage.createdAt, now)}
                   </span>
                 </div>
-                <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-[#8f90a0]">{preview}</p>
+                <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-[#8f90a0]">
+                  <MessageText text={preview} actionClassName="text-[#6b6c7d]" />
+                </p>
               </div>
               <div className="flex shrink-0 items-center gap-1 text-[11px] font-semibold text-[#ff7dc4]">
                 <span>💗</span>
