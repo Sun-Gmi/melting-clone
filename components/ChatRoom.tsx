@@ -4,22 +4,9 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Character } from "@/lib/characters";
 import CharacterArt from "./CharacterArt";
+import { getUserKey } from "@/lib/userKey";
 
 type Msg = { id: string; role: "user" | "assistant"; content: string };
-
-/** 로그인이 없으므로 브라우저마다 익명 ID를 하나 만들어 대화를 구분한다 */
-function getUserKey(): string {
-  const KEY = "melting.userKey";
-  try {
-    const saved = localStorage.getItem(KEY);
-    if (saved) return saved;
-    const fresh = crypto.randomUUID();
-    localStorage.setItem(KEY, fresh);
-    return fresh;
-  } catch {
-    return "anonymous";
-  }
-}
 
 export default function ChatRoom({ character }: { character: Character }) {
   const [messages, setMessages] = useState<Msg[]>([]);

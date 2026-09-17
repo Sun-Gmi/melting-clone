@@ -6,7 +6,8 @@ export default function CharacterArt({
   className = "",
   emojiSize = "text-5xl",
 }: {
-  c: Character;
+  // 아트 정보만 있으면 되므로 캐릭터 일부만 넘겨도 된다
+  c: Pick<Character, "art">;
   className?: string;
   emojiSize?: string;
 }) {

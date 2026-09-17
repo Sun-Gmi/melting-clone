@@ -72,3 +72,47 @@ function requireDb() {
   }
   return supabaseAdmin;
 }
+
+export type ConversationSummary = {
+  id: string;
+  characterId: string;
+  affinity: number;
+  updatedAt: string;
+  /** 가장 최근 메시지. 아직 아무 말도 주고받지 않은 방이면 null */
+  lastMessage: (ChatTurn & { createdAt: string }) | null;
+};
+
+/** 이 사람(user_key)이 가진 대화방 목록을 최근 대화 순으로 돌려준다 */
+export async function listConversations(userKey: string): Promise<ConversationSummary[]> {
+  const db = requireDb();
+  const { data, error } = await db
+    .from("conversations")
+    .select("id, character_id, affinity, updated_at, messages(role, content, created_at)")
+    .eq("user_key", userKey)
+    .order("updated_at", { ascending: false })
+    // 방마다 가장 최근 메시지 1개만 같이 가져온다
+    .order("created_at", { referencedTable: "messages", ascending: false })
+    .limit(1, { referencedTable: "messages" });
+  if (error) throw new Error(`대화 목록 조회 실패: ${error.message}`);
+
+  type Row = {
+    id: string;
+    character_id: string;
+    affinity: number;
+    updated_at: string;
+    messages: { role: string; content: string; created_at: string }[] | null;
+  };
+
+  return ((data ?? []) as Row[]).map((row) => {
+    const last = row.messages?.[0];
+    return {
+      id: row.id,
+      characterId: row.character_id,
+      affinity: row.affinity,
+      updatedAt: row.updated_at,
+      lastMessage: last
+        ? { role: last.role as ChatTurn["role"], content: last.content, createdAt: last.created_at }
+        : null,
+    };
+  });
+}

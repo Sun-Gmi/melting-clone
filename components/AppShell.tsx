@@ -28,11 +28,12 @@ export function AppTopBar() {
   );
 }
 
+// 아직 화면이 없는 탭(창작, MY)은 탐색으로 보낸다
 const navItems = [
   { href: "/characters", label: "탐색", icon: "🧭" },
   { href: "/chats", label: "대화", icon: "💬" },
-  { href: "/create", label: "창작", icon: "✏️" },
-  { href: "/my", label: "MY", icon: "👤" },
+  { href: "/characters", label: "창작", icon: "✏️" },
+  { href: "/characters", label: "MY", icon: "👤" },
 ];
 
 export function AppBottomNav({ active = "탐색" }: { active?: string }) {
@@ -42,7 +43,7 @@ export function AppBottomNav({ active = "탐색" }: { active?: string }) {
         {navItems.map((item) => (
           <Link
             key={item.label}
-            href={item.href === "/characters" ? item.href : "/characters"}
+            href={item.href}
             className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] ${
               active === item.label ? "text-white" : "text-[#6b6c7d]"
             }`}

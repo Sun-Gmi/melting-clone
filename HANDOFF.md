@@ -2,7 +2,7 @@
 
 > 이 문서 하나만 읽으면 지금까지의 맥락을 이해하고 작업을 이어갈 수 있도록 정리했습니다.
 > 새 Claude Code 세션은 **먼저 이 문서를 끝까지 읽고** 작업을 시작하세요.
-> 최종 갱신: 2026-09-04
+> 최종 갱신: 2026-09-17
 
 ---
 
@@ -61,12 +61,15 @@ app/
   page.tsx                 랜딩(홍보) 페이지 — 히어로/호감도 소개/장르 태그/크리에이터 혜택
   characters/page.tsx      탐색 화면 — 캐릭터 그리드, 실시간 인기/라이징 섹션
   chat/[id]/page.tsx       채팅 페이지 (서버 컴포넌트) — 캐릭터를 불러와 ChatRoom 에 넘김
+  chats/page.tsx           "대화" 탭 — 진행 중인 대화방 목록 (ChatList 가 API 로 불러옴)
   api/chat/route.ts        ★ 채팅 API. LLM 호출과 대화 저장이 전부 여기서 일어남
+  api/conversations/route.ts  대화 목록 API (userKey 로 조회, 메시지가 있는 방만 반환)
   layout.tsx               Pretendard 폰트 로드, 메타데이터
   globals.css              Tailwind + 다크 테마 토큰
 
 components/
   ChatRoom.tsx             ★ 채팅 UI (클라이언트 컴포넌트). 낙관적 전송, 타이핑 표시, 오류 복구
+  ChatList.tsx             대화 목록 UI (클라이언트 컴포넌트). 최근 메시지 미리보기 + 상대 시간
   CharacterCard.tsx        탐색 화면의 카드
   CharacterArt.tsx         썸네일 대체 그라디언트 아트 (실제 이미지 파일 없음)
   AppShell.tsx             앱 상단바 / 하단 네비게이션
@@ -79,7 +82,8 @@ lib/
   data.ts                  캐릭터 조회 (Supabase → 실패 시 정적 폴백)
   supabase.ts              브라우저/서버 공용 클라이언트 (publishable 키)
   supabaseAdmin.ts         서버 전용 클라이언트 (secret 키, RLS 우회)
-  conversation.ts          대화방/메시지 저장·조회 (server-only)
+  conversation.ts          대화방/메시지 저장·조회 + 대화 목록 조회 (server-only)
+  userKey.ts               브라우저 익명 ID(localStorage) 발급·조회. ChatRoom / ChatList 공용
 
 supabase/
   schema.sql               001: characters 테이블 + RLS + 시드 12명
@@ -224,8 +228,7 @@ Supabase CLI 를 쓰지 않고 **대시보드 SQL Editor 에 직접 붙여넣어
 | **호감도 시스템** | UI 게이지는 있지만 **장식**. `conversations.affinity` 컬럼은 있으나 항상 30 고정이고 대화에 반응하지 않음 |
 | **로그인** | 의도적으로 제외. 기기를 바꾸면 대화가 안 보임 |
 | **스트리밍** | 미구현. 답변이 다 만들어질 때까지 타이핑 표시만 보임 (보통 4초, 혼잡하면 더 길어짐) |
-| **대화 목록 화면** | 하단 네비의 "대화" 탭은 탐색 페이지로 연결된 더미 |
-| **캐릭터 만들기** | "창작" 탭 더미. 생성 기능 없음 |
+| **캐릭터 만들기 / MY** | "창작", "MY" 탭은 탐색 페이지로 가는 더미 |
 | **탐색 페이지 필터/탭** | 태그 칩과 추천/라이징/태그 탭이 **클릭해도 동작 안 함** (표시만) |
 | **이미지** | 실제 일러스트 없음 (그라디언트 아트로 대체) |
 | **대화 길이 관리** | 최근 30턴(`HISTORY_LIMIT`)만 전송. 그 이전 내용은 잊습니다. 요약/압축 미구현 |
@@ -237,8 +240,9 @@ Supabase CLI 를 쓰지 않고 **대시보드 SQL Editor 에 직접 붙여넣어
 
 1. **호감도 실제 동작** — LLM 이 답변과 함께 호감도 증감을 판정하도록 하고 `conversations.affinity` 갱신
 2. **스트리밍 응답** — 한 글자씩 흘려보내 체감 속도 개선 (Gemini `streamGenerateContent`)
-3. **대화 목록 화면** — 진행 중인 대화들을 보여주는 "대화" 탭 구현
-4. **탐색 페이지 필터 동작** — 태그 클릭 시 실제 필터링
+3. **탐색 페이지 필터 동작** — 태그 클릭 시 실제 필터링
+
+완료: ~~대화 목록 화면~~ (2026-09-17, `/chats`)
 
 ---
 
