@@ -23,6 +23,7 @@ export default function ChatRoom({ character }: { character: CharacterProfile })
   const [resetting, setResetting] = useState(false);
   const userKey = useRef<string>("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // 지난 대화 불러오기
   useEffect(() => {
@@ -68,6 +69,7 @@ export default function ChatRoom({ character }: { character: CharacterProfile })
     if (!text || sending) return;
 
     setInput("");
+    if (inputRef.current) inputRef.current.style.height = "auto";
     setError(null);
     setSending(true);
     // 내 메시지는 먼저 화면에 띄운다 (답을 기다리는 동안 반응이 있도록)
@@ -257,25 +259,33 @@ export default function ChatRoom({ character }: { character: CharacterProfile })
       </main>
 
       <footer className="shrink-0 border-t border-white/5 p-3">
-        <div className="flex items-center gap-2 rounded-full bg-[#222430] px-4 py-2.5">
-          <input
+        <div className="flex items-end gap-2 rounded-3xl bg-[#222430] px-4 py-2.5">
+          {/* Enter = 전송, Shift+Enter = 줄바꿈. 내용에 맞춰 최대 5줄까지 높이가 늘어난다 */}
+          <textarea
+            ref={inputRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            rows={1}
+            onChange={(e) => {
+              setInput(e.target.value);
+              const el = e.target;
+              el.style.height = "auto";
+              el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+            }}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault();
                 void send();
               }
             }}
             disabled={sending}
             maxLength={1000}
-            className="flex-1 bg-transparent text-sm text-white placeholder-[#6b6c7d] outline-none disabled:opacity-50"
+            className="max-h-[120px] flex-1 resize-none bg-transparent py-0.5 text-sm leading-relaxed text-white placeholder-[#6b6c7d] outline-none disabled:opacity-50"
             placeholder={`${character.name}에게 메시지 보내기...`}
           />
           <button
             onClick={() => void send()}
             disabled={sending || !input.trim()}
-            className="rounded-full bg-[#ff33a5] px-4 py-1.5 text-xs font-bold text-white transition disabled:opacity-40"
+            className="shrink-0 rounded-full bg-[#ff33a5] px-4 py-1.5 text-xs font-bold text-white transition disabled:opacity-40"
           >
             {sending ? "..." : "전송"}
           </button>
