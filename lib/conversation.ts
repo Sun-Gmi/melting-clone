@@ -50,7 +50,9 @@ export async function getMessages(conversationId: string): Promise<StoredMessage
 
 export async function appendMessages(
   conversationId: string,
-  turns: ChatTurn[]
+  turns: ChatTurn[],
+  /** 이번 턴 이후의 호감도. 넘기면 같이 저장한다 */
+  affinity?: number
 ): Promise<void> {
   const db = requireDb();
   const { error } = await db
@@ -58,10 +60,28 @@ export async function appendMessages(
     .insert(turns.map((t) => ({ conversation_id: conversationId, ...t })));
   if (error) throw new Error(`대화 저장 실패: ${error.message}`);
 
-  await db
+  const { error: updErr } = await db
     .from("conversations")
-    .update({ updated_at: new Date().toISOString() })
+    .update({
+      updated_at: new Date().toISOString(),
+      ...(affinity !== undefined ? { affinity } : {}),
+    })
     .eq("id", conversationId);
+  if (updErr) throw new Error(`대화방 갱신 실패: ${updErr.message}`);
+}
+
+/**
+ * 대화방을 통째로 지운다 ("대화 다시 시작").
+ * messages 는 on delete cascade 로 함께 지워지고, 다음 요청에서 호감도 기본값으로 새 방이 생긴다.
+ */
+export async function deleteConversation(userKey: string, characterId: string): Promise<void> {
+  const db = requireDb();
+  const { error } = await db
+    .from("conversations")
+    .delete()
+    .eq("user_key", userKey)
+    .eq("character_id", characterId);
+  if (error) throw new Error(`대화 삭제 실패: ${error.message}`);
 }
 
 function requireDb() {

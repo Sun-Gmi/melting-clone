@@ -4,9 +4,11 @@ import { buildSystemPrompt, HISTORY_LIMIT } from "@/lib/prompt";
 import { callLLM, LLMError, type ChatTurn } from "@/lib/llm";
 import {
   appendMessages,
+  deleteConversation,
   getMessages,
   getOrCreateConversation,
 } from "@/lib/conversation";
+import { clampAffinity, parseAffinityTag } from "@/lib/affinity";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -84,7 +86,10 @@ export async function POST(req: Request) {
     const userTurn: ChatTurn = { role: "user", content: message.trim() };
     const history = [...priorTurns, userTurn].slice(-HISTORY_LIMIT);
 
-    const reply = await callLLM(buildSystemPrompt(character), history);
+    const raw = await callLLM(buildSystemPrompt(character, convo.affinity), history);
+    // 답변 끝의 [호감도 +N] 태그를 떼어내고, 호감도를 갱신한다
+    const { reply, delta } = parseAffinityTag(raw);
+    const affinity = clampAffinity(convo.affinity + delta);
 
     // 첫 대화였다면 인사말도 함께 기록해 다음 턴부터 맥락이 이어지게 한다
     const toSave: ChatTurn[] =
@@ -92,9 +97,14 @@ export async function POST(req: Request) {
         ? [userTurn, { role: "assistant", content: reply }]
         : [{ role: "assistant", content: character.firstMessage }, userTurn, { role: "assistant", content: reply }];
 
-    await appendMessages(convo.id, toSave);
+    await appendMessages(convo.id, toSave, affinity);
 
-    return NextResponse.json({ conversationId: convo.id, reply });
+    return NextResponse.json({
+      conversationId: convo.id,
+      reply,
+      affinity,
+      affinityDelta: affinity - convo.affinity,
+    });
   } catch (e) {
     console.error("[api/chat POST]", e);
     if (e instanceof LLMError) {
@@ -109,5 +119,24 @@ export async function POST(req: Request) {
       );
     }
     return NextResponse.json({ error: "오류가 발생했어요. 다시 시도해 주세요." }, { status: 500 });
+  }
+}
+
+/** DELETE: 이 사람과 이 캐릭터의 대화를 지우고 처음부터 다시 시작한다 (호감도도 초기화) */
+export async function DELETE(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const userKey = searchParams.get("userKey");
+  const characterId = searchParams.get("characterId");
+
+  if (!userKey || !characterId) {
+    return NextResponse.json({ error: "userKey와 characterId가 필요합니다." }, { status: 400 });
+  }
+
+  try {
+    await deleteConversation(userKey, characterId);
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    console.error("[api/chat DELETE]", e);
+    return NextResponse.json({ error: "대화를 지우지 못했습니다." }, { status: 500 });
   }
 }

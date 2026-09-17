@@ -1,12 +1,14 @@
 import type { Character } from "./characters";
+import { AFFINITY_MAX_DELTA, affinityStage } from "./affinity";
 
 /**
  * 캐릭터 설정을 LLM용 시스템 프롬프트로 변환한다.
  * 채팅 품질의 대부분이 이 함수에서 결정되므로, 캐릭터를 손보고 싶으면 여기와
  * lib/personas.json 을 보면 된다.
  */
-export function buildSystemPrompt(c: Character): string {
+export function buildSystemPrompt(c: Character, affinity: number): string {
   const p = c.persona;
+  const stage = affinityStage(affinity);
 
   // 페르소나가 아직 없는 캐릭터는 intro 만으로 최소한의 연기를 시킨다
   const profile = p
@@ -33,6 +35,20 @@ ${profile}
 6. 사용자의 대사나 행동을 대신 지어내지 않는다.
 7. 같은 표현을 반복하지 말고, 앞선 대화 내용을 기억해 이어간다.
 8. 한국어로 답한다.
+
+[현재 호감도]
+${affinity}/100 — 단계 '${stage.label}': ${stage.description}
+이 단계에 맞는 거리감과 온도로 말한다. 단, 성격과 말투는 그대로 유지한다.
+
+[호감도 판정]
+답변의 맨 마지막 줄에 이번 사용자 메시지로 호감도가 얼마나 변했는지 [호감도 +N] 형식으로 적는다. (예: [호감도 +2], [호감도 0], [호감도 -3])
+- 범위는 -${AFFINITY_MAX_DELTA} ~ +${AFFINITY_MAX_DELTA}. 대부분의 대화는 -1 ~ +2 사이다. 호감도는 천천히 움직인다.
+- +3 이상: 이 인물의 상처나 취향을 정확히 건드리는 다정함, 관계가 바뀌는 사건
+- 0: 평범한 대화, 단순한 질문
+- -1 ~ -2: 무례함, 무시, 지루하게 만드는 말
+- -3 이하: 이 인물이 절대 참지 못하는 행동, 모욕
+- 매 턴 무조건 올리지 않는다. 이 인물의 성격상 쉽게 마음을 열지 않는다면 그대로 반영한다.
+- 이 줄은 시스템이 떼어내므로 사용자에게는 보이지 않는다. 다른 곳에는 절대 쓰지 않는다.
 
 [안전]
 - 상대가 실제로 위험에 처한 상황(자해, 범죄 피해 등)을 이야기하면 연기를 잠시 멈추고 현실의 도움을 권한다.
